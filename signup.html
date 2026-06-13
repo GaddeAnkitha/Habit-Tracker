@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Sign Up</title>
+
+<style>
+
+
+body{
+background:#ded4a6;
+font-family:Arial;
+background-size:cover;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+width:90%;
+max-width:400px;
+background:rgba(255,255,255,0.25);
+padding:30px;
+border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.2);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,0.3);
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px 0;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px;
+width:100%;
+background:#4CAF50;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+a{
+display:block;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Sign Up</h2>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="signup()">Sign Up</button>
+
+<a href="login.html">Already have an account? Login</a>
+
+</div>
+
+<script>
+
+async function signup(){
+
+const username=document.getElementById("username").value.trim();
+const password=document.getElementById("password").value.trim();
+
+const res=await fetch("http://localhost:5000/signup",{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({username,password})
+});
+
+const data=await res.json();
+
+/* REMOVE OLD MESSAGE */
+const oldMsg=document.getElementById("msg");
+if(oldMsg) oldMsg.remove();
+
+document.querySelector(".container").insertAdjacentHTML(
+"beforeend",
+`<p id='msg' style='text-align:center;color:${data.success ? 'green':'red'}'>
+${data.message}
+</p>`
+);
+
+if(data.success){
+setTimeout(()=>{
+window.location.href="login.html";
+},1500);
+}
+
+}
+
+</script>
+
+</body>
+</html>

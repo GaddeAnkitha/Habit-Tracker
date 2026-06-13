@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>Habit Tracker</title>
+
+<style>
+
+body{
+font-family:Arial;
+background-image:url("https://images.unsplash.com/photo-1506784983877-45594efa4cbe");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+/* Transparent Glass Container */
+
+.container{
+width:90%;
+max-width:400px;
+background:rgba(255,255,255,0.25);
+padding:30px;
+border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.2);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,0.3);
+}
+
+h1{
+text-align:center;
+color:#8b6f3d;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+input{
+width:65%;
+padding:10px;
+border-radius:5px;
+border:none;
+outline:none;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+.add-btn{
+background:#4CAF50;
+color:white;
+}
+
+.history-btn{
+background:#2196F3;
+color:white;
+margin-top:10px;
+width:100%;
+}
+
+li{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px;
+background:rgba(255,255,255,0.4);
+padding:10px;
+border-radius:6px;
+}
+
+.complete-btn{
+background:#53b773;
+color:white;
+width:35px;
+height:35px;
+border-radius:8px;
+font-size:18px;
+}
+
+.delete-btn{
+background:#d9534f;
+color:white;
+width:35px;
+height:35px;
+border-radius:8px;
+font-size:18px;
+}
+
+.progress{
+background:#eee;
+height:6px;
+border-radius:5px;
+margin-top:5px;
+width:150px;
+}
+
+.progress-bar{
+background:#4CAF50;
+height:6px;
+border-radius:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Habit Tracker</h1>
+
+<input id="habitInput" placeholder="Enter habit">
+<button class="add-btn" onclick="addHabit()">Add</button>
+
+<br><br>
+
+<button class="history-btn" onclick="openHistory()">View History</button>
+
+<ul id="habitList"></ul>
+
+</div>
+
+<script>
+
+const API="http://localhost:5000/habits";
+
+/* LOAD HABITS */
+
+async function loadHabits(){
+
+const res=await fetch(API);
+const habits=await res.json();
+
+const list=document.getElementById("habitList");
+list.innerHTML="";
+
+const today = new Date().toISOString().slice(0,10);
+
+habits.forEach(habit=>{
+
+const lastCompleted = localStorage.getItem(habit._id);
+const disabled = lastCompleted === today ? "disabled" : "";
+
+const li=document.createElement("li");
+
+li.innerHTML=`
+
+<div>
+
+<b>${habit.title}</b> 🔥 ${habit.streak}
+
+<div class="progress">
+<div class="progress-bar" style="width:${habit.streak*10}%"></div>
+</div>
+
+</div>
+
+<div>
+
+<button class="complete-btn" ${disabled} onclick="completeHabit('${habit._id}')">✓</button>
+
+<button class="delete-btn" onclick="deleteHabit('${habit._id}')">✕</button>
+
+</div>
+
+`;
+
+list.appendChild(li);
+
+});
+
+}
+
+/* ADD HABIT */
+
+async function addHabit(){
+
+const input=document.getElementById("habitInput");
+
+if(input.value===""){
+alert("Enter a habit");
+return;
+}
+
+await fetch(API,{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({title:input.value})
+});
+
+input.value="";
+loadHabits();
+
+}
+
+/* COMPLETE ONLY ONCE PER DAY */
+
+async function completeHabit(id){
+
+const today = new Date().toISOString().slice(0,10);
+const lastCompleted = localStorage.getItem(id);
+
+if(lastCompleted === today){
+alert("Habit already completed today!");
+return;
+}
+
+await fetch(API+"/"+id,{
+method:"PUT"
+});
+
+localStorage.setItem(id,today);
+
+loadHabits();
+
+}
+
+/* DELETE */
+
+async function deleteHabit(id){
+
+await fetch(API+"/"+id,{
+method:"DELETE"
+});
+
+localStorage.removeItem(id);
+
+loadHabits();
+
+}
+
+/* OPEN HISTORY */
+
+function openHistory(){
+window.location.href="history.html";
+}
+
+loadHabits();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Habit History</title>
+
+<style>
+
+body{
+font-family:Arial;
+background-image:url("https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+width:90%;
+max-width:400px;
+background:rgba(255,255,255,0.25);
+padding:30px;
+border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.2);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,0.3);
+}
+
+h1{
+text-align:center;
+}
+
+.card{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:#f2f2f2;
+padding:10px;
+border-radius:6px;
+margin-top:10px;
+}
+
+.deleted{
+background:#f5d6d6;
+color:#b30000;
+}
+
+.right{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.restore-btn{
+background:#4CAF50;
+color:white;
+border:none;
+padding:5px 8px;
+border-radius:5px;
+cursor:pointer;
+font-size:16px;
+}
+
+.delete-btn{
+background:#ff3b30;
+color:white;
+border:none;
+padding:5px 8px;
+border-radius:5px;
+cursor:pointer;
+font-size:16px;
+}
+
+.restore-btn:hover{
+background:#3b9c40;
+}
+
+.delete-btn:hover{
+background:#d62828;
+}
+
+.back-btn{
+margin-top:15px;
+width:100%;
+background:#2196F3;
+color:white;
+padding:10px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Habit History</h1>
+
+<h2>Active Habits</h2>
+<div id="activeHabits"></div>
+
+<h2>Deleted Habits</h2>
+<div id="deletedHabits"></div>
+
+<button class="back-btn" onclick="goBack()">Back to Dashboard</button>
+
+</div>
+
+<script>
+
+const API="http://localhost:5000/history";
+
+async function loadHistory(){
+
+const res=await fetch(API);
+const habits=await res.json();
+
+const active=document.getElementById("activeHabits");
+const deleted=document.getElementById("deletedHabits");
+
+active.innerHTML="";
+deleted.innerHTML="";
+
+habits.forEach(habit=>{
+
+const div=document.createElement("div");
+
+div.className="card";
+
+/* DELETED HABITS */
+
+if(habit.deleted){
+
+div.classList.add("deleted");
+
+div.innerHTML=`
+
+<span>${habit.title}</span>
+
+<div class="right">
+
+<span>🔥 ${habit.streak}</span>
+
+<button class="restore-btn" onclick="restoreHabit('${habit._id}')">
+♻️
+</button>
+
+<button class="delete-btn" onclick="permanentDelete('${habit._id}')">
+🗑️
+</button>
+
+</div>
+
+`;
+
+deleted.appendChild(div);
+
+}
+
+/* ACTIVE HABITS */
+
+else{
+
+div.innerHTML=`
+
+<span>${habit.title}</span>
+
+<div class="right">
+
+<span>🔥 ${habit.streak}</span>
+
+<button class="delete-btn" onclick="permanentDelete('${habit._id}')">
+🗑️
+</button>
+
+</div>
+
+`;
+
+active.appendChild(div);
+
+}
+
+});
+
+}
+
+/* DELETE */
+
+async function permanentDelete(id){
+
+await fetch("http://localhost:5000/history/"+id,{
+method:"DELETE"
+});
+
+loadHistory();
+
+}
+
+/* RESTORE */
+
+async function restoreHabit(id){
+
+await fetch("http://localhost:5000/restore/"+id,{
+method:"PUT"
+});
+
+loadHistory();
+
+}
+
+function goBack(){
+window.location.href="index.html";
+}
+
+loadHistory();
+
+</script>
+
+</body>
+</html>
