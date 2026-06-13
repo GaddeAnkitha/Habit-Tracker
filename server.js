@@ -189,7 +189,7 @@ app.delete("/history/:id", async (req, res) => {
 /*       START SERVER        */
 /* ========================= */
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(path.join(__dirname, "signup.html"));
 });
 const PORT = process.env.PORT || 5000;
 
