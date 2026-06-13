@@ -9,7 +9,7 @@ h1{ text-align:center; } h2 { font-size: 1.2rem; margin-top: 15px; }
 .card{ display:flex; justify-content:space-between; align-items:center; background:#f2f2f2; padding:10px; border-radius:6px; margin-top:10px; }
 .deleted{ background:#f5d6d6; color:#b30000; }
 .right{ display:flex; align-items:center; gap:10px; }
-button{ border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:16px; font-weight: bold;}
+button{ border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:16px; font-weight: bold; }
 .restore-btn{ background:#4CAF50; color:white; }
 .delete-btn{ background:#ff3b30; color:white; }
 .back-btn{ margin-top:15px; width:100%; background:#2196F3; color:white; padding:10px; }
@@ -22,31 +22,55 @@ button{ border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-si
 <h2>Deleted Habits</h2><div id="deletedHabits"></div>
 <button class="back-btn" onclick="goBack()">Back to Dashboard</button>
 </div>
-<script>
-const API_BASE = "/history"; 
-async function loadHistory(){
-const res=await fetch(API_BASE); const habits=await res.json();
-const active=document.getElementById("activeHabits"); const deleted=document.getElementById("deletedHabits");
-active.innerHTML=""; deleted.innerHTML="";
 
-habits.forEach(habit=>{
-const div=document.createElement("div"); div.className="card";
-if(habit.deleted){
-div.classList.add("deleted");
-div.innerHTML=`<span>${habit.title}</span><div class="right"><span>🔥 ${habit.streak}</span>
-<button class="restore-btn" onclick="restoreHabit('${habit._id}')">♻️</button>
-<button class="delete-btn" onclick="permanentDelete('${habit._id}')">🗑️</button></div>`;
-deleted.appendChild(div);
-} else {
-div.innerHTML=`<span>${habit.title}</span><div class="right"><span>🔥 ${habit.streak}</span>
-<button class="delete-btn" onclick="softDeleteHabit('${habit._id}')">🗑️</button></div>`;
-active.appendChild(div);
-}
+<script>
+function loadHistory(){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+const active = document.getElementById("activeHabits"); 
+const deleted = document.getElementById("deletedHabits");
+active.innerHTML = ""; deleted.innerHTML = "";
+
+habits.forEach(habit => {
+    const div = document.createElement("div"); 
+    div.className = "card";
+    
+    if(habit.deleted){
+        div.classList.add("deleted");
+        div.innerHTML = `<span>${habit.title}</span><div class="right"><span>🔥 ${habit.streak}</span>
+        <button class="restore-btn" onclick="restoreHabit('${habit.id}')">♻️</button>
+        <button class="delete-btn" onclick="permanentDelete('${habit.id}')">🗑️</button></div>`;
+        deleted.appendChild(div);
+    } else {
+        div.innerHTML = `<span>${habit.title}</span><div class="right"><span>🔥 ${habit.streak}</span>
+        <button class="delete-btn" onclick="softDeleteHabit('${habit.id}')">🗑️</button></div>`;
+        active.appendChild(div);
+    }
 });
 }
-async function softDeleteHabit(id){ await fetch("/habits/"+id,{ method:"DELETE" }); loadHistory(); }
-async function permanentDelete(id){ if(confirm("Delete permanently?")) { await fetch(API_BASE+"/"+id,{ method:"DELETE" }); loadHistory(); } }
-async function restoreHabit(id){ await fetch("/restore/"+id,{ method:"PUT" }); loadHistory(); }
+
+function softDeleteHabit(id){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+habits.find(h => h.id === id).deleted = true;
+localStorage.setItem("habits", JSON.stringify(habits));
+loadHistory();
+}
+
+function restoreHabit(id){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+habits.find(h => h.id === id).deleted = false;
+localStorage.setItem("habits", JSON.stringify(habits));
+loadHistory();
+}
+
+function permanentDelete(id){
+if(confirm("Delete permanently?")) {
+    let habits = JSON.parse(localStorage.getItem("habits") || "[]");
+    habits = habits.filter(h => h.id !== id);
+    localStorage.setItem("habits", JSON.stringify(habits));
+    loadHistory();
+}
+}
+
 function goBack(){ window.location.href="index.html"; }
 loadHistory();
 </script>
