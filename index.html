@@ -4,14 +4,14 @@
 <title>Habit Tracker</title>
 <style>
 body{ font-family:Arial; background-image:url("https://images.unsplash.com/photo-1506784983877-45594efa4cbe"); background-size:cover; background-position:center; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-.container{ width:90%; max-width:400px; background:rgba(255,255,255,0.25); padding:30px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.2); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.3); box-sizing: border-box; }
+.container{ width:90%; max-width:400px; background:rgba(255,255,255,0.25); padding:30px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.2); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.3); box-sizing: border-box; position: relative; z-index: 10; }
 h1{ text-align:center; color:#8b6f3d; margin-bottom:20px; }
 .input-row { display: flex; gap: 10px; }
 input{ flex: 1; padding:10px; border-radius:5px; border:1px solid #ccc; outline:none; box-sizing: border-box; }
 button{ padding:10px; border:none; border-radius:5px; cursor:pointer; font-weight: bold;}
 .add-btn{ background:#4CAF50; color:white; }
 .history-btn{ background:#2196F3; color:white; margin-top:10px; width:100%; }
-ul { padding: 0; list-style: none; }
+ul { padding: 0; list-style: none; margin: 0; min-height: 20px; }
 li{ display:flex; justify-content:space-between; align-items:center; margin-top:10px; background:rgba(255,255,255,0.4); padding:10px; border-radius:6px; }
 .complete-btn{ background:#53b773; color:white; width:35px; height:35px; border-radius:8px; font-size:18px; }
 .delete-btn{ background:#d9534f; color:white; width:35px; height:35px; border-radius:8px; font-size:18px; }
@@ -29,37 +29,75 @@ li{ display:flex; justify-content:space-between; align-items:center; margin-top:
 <button class="history-btn" onclick="openHistory()">View History</button>
 <ul id="habitList"></ul>
 </div>
+
 <script>
-const API="/habits";
-async function loadHabits(){
-const res=await fetch(API); const habits=await res.json();
-const list=document.getElementById("habitList"); list.innerHTML="";
-const today = new Date().toISOString().slice(0,10);
+function loadHabits(){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+const list = document.getElementById("habitList"); 
+list.innerHTML = "";
 
-habits.forEach(habit=>{
-const lastCompleted = localStorage.getItem(habit._id);
-const disabled = lastCompleted === today ? "disabled" : "";
-const progressWidth = Math.min(habit.streak * 10, 100);
+const today = new Date().toDateString();
+const activeHabits = habits.filter(h => !h.deleted);
 
-const li=document.createElement("li");
-li.innerHTML = `<div><b>${habit.title}</b> 🔥 ${habit.streak}<div class="progress"><div class="progress-bar" style="width:${progressWidth}%"></div></div></div>
-<div><button class="complete-btn" ${disabled} onclick="completeHabit('${habit._id}')">✓</button>
-<button class="delete-btn" onclick="deleteHabit('${habit._id}')">✕</button></div>`;
-list.appendChild(li);
+activeHabits.forEach(habit => {
+    const disabled = habit.lastCompleted === today ? "disabled" : "";
+    const progressWidth = Math.min(habit.streak * 10, 100);
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+        <div><b>${habit.title}</b> 🔥 ${habit.streak}
+            <div class="progress"><div class="progress-bar" style="width:${progressWidth}%"></div></div>
+        </div>
+        <div>
+            <button class="complete-btn" ${disabled} onclick="completeHabit('${habit.id}')">✓</button>
+            <button class="delete-btn" onclick="deleteHabit('${habit.id}')">✕</button>
+        </div>`;
+    list.appendChild(li);
 });
 }
-async function addHabit(){
-const input=document.getElementById("habitInput"); if(input.value.trim()===""){ alert("Enter a habit"); return; }
-await fetch(API,{ method:"POST", headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:input.value}) });
-input.value=""; loadHabits();
+
+function addHabit(){
+const input = document.getElementById("habitInput"); 
+if(input.value.trim() === ""){ alert("Enter a habit"); return; }
+
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+habits.push({
+    id: Date.now().toString(), // Generate synthetic timestamp ID
+    title: input.value.trim(),
+    streak: 0,
+    deleted: false,
+    lastCompleted: null
+});
+
+localStorage.setItem("habits", JSON.stringify(habits));
+input.value = ""; 
+loadHabits();
 }
-async function completeHabit(id){
-const today = new Date().toISOString().slice(0,10);
-const res = await fetch(API+"/"+id,{ method:"PUT" });
-if(res.ok) { localStorage.setItem(id,today); loadHabits(); }
+
+function completeHabit(id){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+const habit = habits.find(h => h.id === id);
+const today = new Date().toDateString();
+
+if(habit.lastCompleted === today) return;
+
+habit.streak += 1;
+habit.lastCompleted = today;
+
+localStorage.setItem("habits", JSON.stringify(habits));
+loadHabits();
 }
-async function deleteHabit(id){ await fetch(API+"/"+id,{ method:"DELETE" }); loadHabits(); }
-function openHistory(){ window.location.href="history.html"; }
+
+function deleteHabit(id){
+const habits = JSON.parse(localStorage.getItem("habits") || "[]");
+const habit = habits.find(h => h.id === id);
+habit.deleted = true; // Soft Delete
+
+localStorage.setItem("habits", JSON.stringify(habits));
+loadHabits();
+}
+
+function openHistory(){ window.location.href = "history.html"; }
 loadHabits();
 </script>
 </body>
