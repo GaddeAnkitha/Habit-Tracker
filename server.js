@@ -186,7 +186,9 @@ res.json({message:"Deleted permanently"});
 /* ========================= */
 /*       START SERVER        */
 /* ========================= */
-
+app.get("/", (req, res) => {
+    res.send("Habit Tracker Backend is Running");
+});
 app.listen(5000, ()=>{
 console.log("Server running on port 5000");
 });
