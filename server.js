@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 
-app.use(express.static(__dirname));
 const app = express();
 
+app.use(express.static(__dirname));
 app.use(express.json());
 app.use(cors());
 
@@ -191,6 +191,8 @@ app.delete("/history/:id", async (req, res) => {
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
-app.listen(5000, () => {
-    console.log("Server running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
