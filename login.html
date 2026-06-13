@@ -18,21 +18,23 @@ a{ display:block; margin-top:10px; text-align: center; }
 <button onclick="login()">Login</button>
 <a href="signup.html">Create new account</a>
 </div>
+
 <script>
-async function login(){
-const username=document.getElementById("username").value.trim();
-const password=document.getElementById("password").value.trim();
+function login(){
+const username = document.getElementById("username").value.trim();
+const password = document.getElementById("password").value.trim();
 
-const res=await fetch("/login",{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({username,password})
-});
-const data=await res.json();
-const oldMsg=document.getElementById("msg"); if(oldMsg) oldMsg.remove();
+const users = JSON.parse(localStorage.getItem("users") || "[]");
+const userFound = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
 
-if(data.success){ window.location.href="index.html"; }
-else{ document.querySelector(".container").insertAdjacentHTML("beforeend", "<p id='msg' style='color:red;text-align:center;'>Invalid Username or Password</p>"); }
+if(userFound){
+    // Track who is currently logged in
+    localStorage.setItem("currentUser", username);
+    window.location.href="index.html";
+} else {
+    const oldMsg=document.getElementById("msg"); if(oldMsg) oldMsg.remove();
+    document.querySelector(".container").insertAdjacentHTML("beforeend", "<p id='msg' style='color:red;text-align:center;'>Invalid Username or Password</p>");
+}
 }
 </script>
 </body>
