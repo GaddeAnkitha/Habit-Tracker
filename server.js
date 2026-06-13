@@ -5,9 +5,54 @@ const path = require("path");
 
 const app = express();
 
-app.use(express.static(__dirname));
+// 1. Parse JSON and handle CORS first
 app.use(express.json());
 app.use(cors());
+
+/* ========================= */
+/* DATABASE & SCHEMAS SLOTS  */
+/* ========================= */
+// ... (Keep your mongoose connection and schemas exactly as they are here) ...
+
+/* ========================= */
+/* EXPLICIT PAGE ROUTING   */
+/* ========================= */
+
+// FORCE SIGNUP TO BE THE ROOT ENTRY POINT
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "signup.html"));
+});
+
+app.get("/signup.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "signup.html"));
+});
+
+app.get("/login.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "login.html"));
+});
+
+app.get("/index.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/history.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "history.html"));
+});
+
+// 2. NOW serve static files AFTER custom routes so index.html doesn't override the root "/"
+app.use(express.static(__dirname));
+
+/* ========================= */
+/* API ROUTES SLOT      */
+/* ========================= */
+// ... (Keep your /signup, /login, and /habits POST/PUT/DELETE routes exactly as they are below here) ...
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+module.exports = app;
 
 /* ========================= */
 /* DATABASE CONNECTION       */
@@ -107,62 +152,39 @@ app.post("/login", async (req, res) => {
 /* ========================= */
 /* HABIT API ROUTES          */
 /* ========================= */
-app.get("/habits", async (req, res) => {
-    const habits = await Habit.find({ deleted: false });
-    res.json(habits);
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "signup.html"));
 });
 
-app.get("/history", async (req, res) => {
-    const habits = await Habit.find();
-    res.json(habits);
+app.get("/signup.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "signup.html"));
 });
 
-app.post("/habits", async (req, res) => {
-    const habit = new Habit({ title: req.body.title });
-    await habit.save();
-    res.json(habit);
+app.get("/login.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "login.html"));
 });
 
-app.put("/habits/:id", async (req, res) => {
-    try {
-        const habit = await Habit.findById(req.params.id);
-        const today = new Date().toDateString();
-
-        if (habit.lastCompleted && new Date(habit.lastCompleted).toDateString() === today) {
-            return res.json({ message: "Already completed today" });
-        }
-
-        habit.streak += 1;
-        habit.lastCompleted = new Date();
-        await habit.save();
-        res.json(habit);
-    } catch (err) {
-        res.status(500).json({ message: "Error updating habit" });
-    }
+app.get("/index.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.delete("/habits/:id", async (req, res) => {
-    const habit = await Habit.findById(req.params.id);
-    habit.deleted = true;
-    await habit.save();
-    res.json({ message: "Moved to history" });
+app.get("/history.html", (req, res) => {
+    res.sendFile(path.join(__dirname, "history.html"));
 });
 
-app.put("/restore/:id", async (req, res) => {
-    const habit = await Habit.findById(req.params.id);
-    habit.deleted = false;
-    await habit.save();
-    res.json({ message: "Restored" });
-});
+// 2. NOW serve static files AFTER custom routes so index.html doesn't override the root "/"
+app.use(express.static(__dirname));
 
-app.delete("/history/:id", async (req, res) => {
-    await Habit.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted permanently" });
-});
+/* ========================= */
+/* API ROUTES SLOT      */
+/* ========================= */
+// ... (Keep your /signup, /login, and /habits POST/PUT/DELETE routes exactly as they are below here) ...
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
 
 module.exports = app;
