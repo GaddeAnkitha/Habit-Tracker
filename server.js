@@ -12,8 +12,6 @@ app.use(cors());
 /* ========================= */
 /* DATABASE CONNECTION     */
 /* ========================= */
-
-// Uses environment variable for production (Vercel), fallbacks to your URI if not set
 const mongoURI = process.env.MONGO_URI || "mongodb+srv://gaddeankitha_habittracker:habittracker_174@cluster0.pihgowi.mongodb.net/habittracker?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(mongoURI)
@@ -23,10 +21,9 @@ mongoose.connect(mongoURI)
 /* ========================= */
 /* SCHEMAS            */
 /* ========================= */
-
 const UserSchema = new mongoose.Schema({
-    username: String,
-    password: String
+    username: { type: String, required: true },
+    password: { type: String, required: true }
 });
 const User = mongoose.model("User", UserSchema);
 
@@ -41,7 +38,6 @@ const Habit = mongoose.model("Habit", HabitSchema);
 /* ========================= */
 /* AUTH ROUTES         */
 /* ========================= */
-
 app.post("/signup", async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -86,9 +82,8 @@ app.post("/login", async (req, res) => {
 });
 
 /* ========================= */
-/* HABIT ROUTES         */
+/* HABIT ROUTES        */
 /* ========================= */
-
 app.get("/habits", async (req, res) => {
     const habits = await Habit.find({ deleted: false });
     res.json(habits);
@@ -110,7 +105,6 @@ app.put("/habits/:id", async (req, res) => {
         const habit = await Habit.findById(req.params.id);
         const today = new Date().toDateString();
 
-        // Fixed Crash Bug: Added safety check to ensure lastCompleted isn't null before calling toDateString()
         if (habit.lastCompleted && new Date(habit.lastCompleted).toDateString() === today) {
             return res.json({ message: "Already completed today" });
         }
@@ -124,7 +118,6 @@ app.put("/habits/:id", async (req, res) => {
     }
 });
 
-/* SOFT DELETE (Aligned with history page) */
 app.delete("/habits/:id", async (req, res) => {
     const habit = await Habit.findById(req.params.id);
     habit.deleted = true;
@@ -132,7 +125,6 @@ app.delete("/habits/:id", async (req, res) => {
     res.json({ message: "Moved to history" });
 });
 
-/* RESTORE FROM TRASH */
 app.put("/restore/:id", async (req, res) => {
     const habit = await Habit.findById(req.params.id);
     habit.deleted = false;
@@ -140,12 +132,12 @@ app.put("/restore/:id", async (req, res) => {
     res.json({ message: "Restored" });
 });
 
-/* PERMANENT DELETE */
 app.delete("/history/:id", async (req, res) => {
     await Habit.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted permanently" });
 });
 
+// ROUTE TO LOAD FIRST PAGE
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "signup.html"));
 });
@@ -155,5 +147,4 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// EXPORT FOR VERCEL SERVERLESS FRAMEWORK
 module.exports = app;
