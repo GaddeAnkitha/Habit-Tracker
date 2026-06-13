@@ -95,7 +95,9 @@ document.querySelector(".container").insertAdjacentHTML(
 ${data.message}
 </p>`
 );
+const data = await res.json();
 
+alert(JSON.stringify(data));
 if(data.success){
 setTimeout(()=>{
 window.location.href="login.html";
