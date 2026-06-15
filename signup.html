@@ -1,48 +1,93 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Sign Up</title>
-<style>
-body{ background:#ded4a6; font-family:Arial; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-.container{ width:90%; max-width:400px; background:rgba(255,255,255,0.25); padding:30px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.2); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.3); box-sizing: border-box; }
-input{ width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc; box-sizing: border-box; }
-button{ padding:10px; width:100%; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer; font-weight: bold;}
-a{ display:block; margin-top:10px; text-align: center; }
-</style>
+    <title>Sign Up</title>
+    <style>
+        body {
+            background: #ded4a6;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-sizing: border-box;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        a {
+            display: block;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-<h2>Sign Up</h2>
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
-<button onclick="signup()">Sign Up</button>
-<a href="login.html">Already have an account? Login</a>
-</div>
+    <div class="container">
+        <h2>Sign Up</h2>
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+        <button onclick="signup()">Sign Up</button>
+        <a href="login.html">Already have an account? Login</a>
+    </div>
 
-<script>
-function signup(){
-const username = document.getElementById("username").value.trim();
-const password = document.getElementById("password").value.trim();
-if(!username || !password){ alert("Please fill fields"); return; }
+    <script>
+        function signup() {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            if (!username || !password) { alert("Please fill fields"); return; }
 
-// Fetch existing users from browser storage
-const users = JSON.parse(localStorage.getItem("users") || "[]");
+            // Fetch existing users from browser storage
+            const users = JSON.parse(localStorage.getItem("users") || "[]");
 
-const userExists = users.some(u => u.username.toLowerCase() === username.toLowerCase());
-if(userExists){
-    alert("User already exists!");
-    return;
-}
+            const userExists = users.some(u => u.username.toLowerCase() === username.toLowerCase());
+            if (userExists) {
+                alert("User already exists!");
+                return;
+            }
 
-// Add new user array slot
-users.push({ username, password });
-localStorage.setItem("users", JSON.stringify(users));
+            // Add new user array slot
+            users.push({ username, password });
+            localStorage.setItem("users", JSON.stringify(users));
 
-const oldMsg=document.getElementById("msg"); if(oldMsg) oldMsg.remove();
-document.querySelector(".container").insertAdjacentHTML("beforeend", `<p id='msg' style='text-align:center;color:green'>Account created</p>`);
+            const oldMsg = document.getElementById("msg"); if (oldMsg) oldMsg.remove();
+            document.querySelector(".container").insertAdjacentHTML("beforeend", `<p id='msg' style='text-align:center;color:green'>Account created</p>`);
 
-setTimeout(()=>{ window.location.href="login.html"; }, 1500);
-}
-</script>
+            setTimeout(() => { window.location.href = "login.html"; }, 1500);
+        }
+    </script>
 </body>
+
 </html>
